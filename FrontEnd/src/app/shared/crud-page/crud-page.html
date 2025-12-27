@@ -1,0 +1,196 @@
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="m-0">{{ config.title }}</h4>
+  </div>
+
+  <!-- ALERTAS -->
+  <div *ngFor="let a of alerts" class="alert py-2" [ngClass]="'alert-' + a.type">
+    {{ a.text }}
+  </div>
+
+  <!-- FORMULARIO -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="fw-semibold">
+          {{ mode === 'edit' ? 'Editar' : 'Crear' }}
+        </div>
+
+        <div class="d-flex gap-2">
+          <button
+            *ngIf="mode === 'edit'"
+            class="btn btn-outline-secondary btn-sm"
+            type="button"
+            (click)="cancelEdit()"
+            [disabled]="saving"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <div class="row g-2">
+        <ng-container *ngFor="let f of config.fields">
+          <div class="col-12 col-md-6">
+            <label class="form-label mb-1">{{ f.label }}</label>
+
+            <!-- text / url -->
+            <input
+              *ngIf="f.type === 'text' || f.type === 'url'"
+              class="form-control"
+              [type]="f.type === 'url' ? 'url' : 'text'"
+              [(ngModel)]="form[f.key]"
+              [placeholder]="f.placeholder ?? ''"
+              [disabled]="saving"
+            />
+
+            <!-- select -->
+            <select
+              *ngIf="f.type === 'select'"
+              class="form-select"
+              [(ngModel)]="form[f.key]"
+              [disabled]="saving"
+            >
+              <option [ngValue]="null">
+                {{ f.placeholder ?? 'Seleccione' }}
+              </option>
+              <option *ngFor="let opt of selectOptions[f.key]" [ngValue]="opt.value">
+                {{ opt.label }}
+              </option>
+            </select>
+          </div>
+        </ng-container>
+
+        <div class="col-12 d-grid mt-2">
+          <button
+            class="btn btn-success"
+            type="button"
+            (click)="submit()"
+            [disabled]="saving"
+          >
+            <span
+              *ngIf="saving"
+              class="spinner-border spinner-border-sm me-2"
+              aria-hidden="true"
+            ></span>
+            {{ saving ? 'Guardando…' : (mode === 'edit' ? 'Actualizar' : 'Guardar') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm align-middle m-0">
+          <thead class="table-dark">
+            <tr>
+              <th *ngFor="let col of config.columns">
+                {{ col.label }}
+              </th>
+              <th style="width: 220px;">Acción</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <!-- FILAS DE DATOS -->
+            <tr *ngFor="let item of items">
+              <td *ngFor="let col of config.columns">
+                <ng-container *ngIf="!col.isLink">
+                  {{ item[col.key] }}
+                </ng-container>
+                <a
+                  *ngIf="col.isLink"
+                  [href]="item[col.key]"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ item[col.key] }}
+                </a>
+              </td>
+
+              <td>
+                <div class="d-flex gap-2">
+                  <button
+                    class="btn btn-outline-primary btn-sm flex-fill"
+                    type="button"
+                    (click)="startEdit(item)"
+                    [disabled]="saving || deletingId === item[config.idKey]"
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    class="btn btn-danger btn-sm flex-fill"
+                    type="button"
+                    (click)="remove(item)"
+                    [disabled]="deletingId === item[config.idKey]"
+                  >
+                    <span
+                      *ngIf="deletingId === item[config.idKey]"
+                      class="spinner-border spinner-border-sm me-2"
+                      aria-hidden="true"
+                    ></span>
+                    {{ deletingId === item[config.idKey] ? 'Borrando…' : 'Borrar' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- SIN REGISTROS -->
+            <tr *ngIf="items.length === 0">
+              <td
+                [attr.colspan]="config.columns.length + 1"
+                class="text-center text-muted py-3"
+              >
+                No hay registros.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PAGINACIÓN -->
+      <div
+        class="d-flex justify-content-between align-items-center px-3 py-2 border-top"
+        *ngIf="total > 0"
+      >
+        <small class="text-muted">
+          Mostrando página {{ page }} de {{ totalPages }} ({{ total }} registros)
+        </small>
+
+        <nav>
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="page === 1">
+              <button
+                class="page-link"
+                type="button"
+                (click)="goToPage(page - 1)"
+                [disabled]="page === 1"
+              >
+                Anterior
+              </button>
+            </li>
+
+            <li class="page-item disabled">
+              <span class="page-link">{{ page }} / {{ totalPages }}</span>
+            </li>
+
+            <li class="page-item" [class.disabled]="page === totalPages">
+              <button
+                class="page-link"
+                type="button"
+                (click)="goToPage(page + 1)"
+                [disabled]="page === totalPages"
+              >
+                Siguiente
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
