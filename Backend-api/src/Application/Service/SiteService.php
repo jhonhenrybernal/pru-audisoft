@@ -2,10 +2,11 @@
 namespace App\Application\Service;
 
 use App\Infrastructure\Persistence\MySql\SiteRepository;
+use App\Application\Service\UrlChecker;
 
 final class SiteService
 {
-    public function __construct(private SiteRepository $repo) {}
+    public function __construct(private SiteRepository $repo, private UrlChecker $urlChecker,) {}
 
     public function list(): array
     {
@@ -27,6 +28,10 @@ final class SiteService
 
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
             throw new \InvalidArgumentException("URL inválida.");
+        }
+
+        if (!$this->urlChecker->isReachable($url)) {
+            throw new \InvalidArgumentException('La URL no responde o no existe.');
         }
 
         if ($this->repo->existsByName($name)) {
@@ -62,6 +67,10 @@ final class SiteService
 
         if ($this->repo->existsByName($name, $id)) {
             throw new \InvalidArgumentException('Ya existe otro sitio con ese nombre.');
+        }
+        
+        if (!$this->urlChecker->isReachable($url)) {
+            throw new \InvalidArgumentException('La URL no responde o no existe.');
         }
 
         if ($this->repo->existsByUrl($url, $id)) {

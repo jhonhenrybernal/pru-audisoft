@@ -41,11 +41,6 @@ final class SiteController
     public function update(int $id, Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true) ?? [];
-        if (!$this->urlChecker->isReachable($url)) {
-            return new JsonResponse([
-                'message' => 'La URL no responde o no existe.'
-            ], 409);
-        }
         $this->service->update(
             $id,
             $data['name'] ?? '',

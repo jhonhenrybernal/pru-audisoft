@@ -141,3 +141,26 @@ ALTER TABLE categories
 ALTER TABLE sites
   ADD UNIQUE KEY uq_sites_name (name),
   ADD UNIQUE KEY uq_sites_url (url);
+
+
+
+  USE audisoft;
+
+DELIMITER $$
+
+CREATE PROCEDURE spSite_Update(
+    IN p_id INT,
+    IN p_name VARCHAR(255),
+    IN p_url VARCHAR(500),
+    IN p_category_id INT
+)
+BEGIN
+    UPDATE sites
+    SET
+        name        = p_name,
+        url         = p_url,
+        category_id = p_category_id
+    WHERE id = p_id;
+END$$
+
+DELIMITER ;
